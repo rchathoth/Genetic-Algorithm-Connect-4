@@ -66,6 +66,7 @@ impl Board {
         }
 
         MoveResult::Ongoing
+        self.display;
     }
 
     // Helper method to check if the last placed piece at idx results in a win
@@ -123,4 +124,19 @@ impl Board {
 
         false
     }
+    
+    // Displays the board in the terminal
+    pub fn display(&self) {
+        for r in 0..6 {
+            for c in 0..7 {
+                print!("{} ", match self.board[r * 7 + c] {
+                    Cell::Empty => '.',
+                    Cell::P1 => 'X',
+                    Cell::P2 => 'O',
+                });
+            }
+            println!();
+        }
+    }
+
 }
