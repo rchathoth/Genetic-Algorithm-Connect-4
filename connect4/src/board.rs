@@ -66,7 +66,6 @@ impl Board {
         }
 
         MoveResult::Ongoing
-        self.display;
     }
 
     // Helper method to check if the last placed piece at idx results in a win
