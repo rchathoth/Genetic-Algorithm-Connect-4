@@ -1,6 +1,7 @@
 use ndarray::{Array1, Array2};
 use serde::{Serialize, Deserialize};
 use rand::Rng;
+use rand_distr::{Normal, Distribution};
 
 const INPUT_SIZE: usize = 42;
 const HIDDEN_SIZE: usize = 16;
@@ -57,6 +58,71 @@ impl Network {
 
         output_act[0]
     }
+
+    // In-place Gaussian mutation based on mutation rate and scale
+    pub fn mutate(&mut self, rate: f32, scale: f32) {
+        let mut rng = rand::thread_rng();
+        let normal = Normal::new(0.0, scale as f64).unwrap();
+
+        // Mutate w1
+        self.w1.mapv_inplace(|w| {
+            if rng.gen_range(0.0..1.0) < rate {
+                w + (normal.sample(&mut rng) as f32)
+            } else {
+                w
+            }
+        });
+
+        // Mutate b1
+        self.b1.mapv_inplace(|b| {
+            if rng.gen_range(0.0..1.0) < rate {
+                b + (normal.sample(&mut rng) as f32)
+            } else {
+                b
+            }
+        });
+
+        // Mutate w2
+        self.w2.mapv_inplace(|w| {
+            if rng.gen_range(0.0..1.0) < rate {
+                w + (normal.sample(&mut rng) as f32)
+            } else {
+                w
+            }
+        });
+
+        // Mutate b2
+        self.b2.mapv_inplace(|b| {
+            if rng.gen_range(0.0..1.0) < rate {
+                b + (normal.sample(&mut rng) as f32)
+            } else {
+                b
+            }
+        });
+    }
+
+    // Uniform matrix crossover producing offspring from two parent networks
+    pub fn crossover(parent_a: &Network, parent_b: &Network) -> Network {
+        let mut rng = rand::thread_rng();
+
+        let w1 = Array2::from_shape_fn(parent_a.w1.dim(), |idx| {
+            if rng.gen_bool(0.5) { parent_a.w1[idx] } else { parent_b.w1[idx] }
+        });
+
+        let b1 = Array1::from_shape_fn(parent_a.b1.dim(), |idx| {
+            if rng.gen_bool(0.5) { parent_a.b1[idx] } else { parent_b.b1[idx] }
+        });
+
+        let w2 = Array2::from_shape_fn(parent_a.w2.dim(), |idx| {
+            if rng.gen_bool(0.5) { parent_a.w2[idx] } else { parent_b.w2[idx] }
+        });
+
+        let b2 = Array1::from_shape_fn(parent_a.b2.dim(), |idx| {
+            if rng.gen_bool(0.5) { parent_a.b2[idx] } else { parent_b.b2[idx] }
+        });
+
+        Network { w1, b1, w2, b2 }
+    }
 }
 
 #[cfg(test)]
@@ -87,6 +153,46 @@ mod tests {
         let score1 = net.forward(&dummy_input);
         let score2 = net.forward(&dummy_input);
         assert_eq!(score1, score2);
+    }
+
+    #[test]
+    fn test_mutation_zero_rate() {
+        let net = Network::new_random();
+        let mut mutated = net.clone();
+        mutated.mutate(0.0, 1.0);
+
+        assert_eq!(net.w1, mutated.w1);
+        assert_eq!(net.b1, mutated.b1);
+        assert_eq!(net.w2, mutated.w2);
+        assert_eq!(net.b2, mutated.b2);
+    }
+
+    #[test]
+    fn test_mutation_full_rate() {
+        let net = Network::new_random();
+        let mut mutated = net.clone();
+        mutated.mutate(1.0, 0.5);
+
+        // Every weight and bias element should be modified
+        assert!(net.w1 != mutated.w1);
+        assert!(net.b1 != mutated.b1);
+        assert!(net.w2 != mutated.w2);
+        assert!(net.b2 != mutated.b2);
+    }
+
+    #[test]
+    fn test_crossover() {
+        let parent_a = Network::new_random();
+        let parent_b = Network::new_random();
+        let child = Network::crossover(&parent_a, &parent_b);
+
+        // Check each weight in child comes from either parent_a or parent_b
+        for r in 0..16 {
+            for c in 0..42 {
+                let val = child.w1[[r, c]];
+                assert!(val == parent_a.w1[[r, c]] || val == parent_b.w1[[r, c]]);
+            }
+        }
     }
 }
 
