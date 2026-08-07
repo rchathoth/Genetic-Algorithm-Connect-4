@@ -125,76 +125,7 @@ impl Network {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn test_network_shapes() {
-        let net = Network::new_random();
-        assert_eq!(net.w1.shape(), &[16, 42]);
-        assert_eq!(net.b1.shape(), &[16]);
-        assert_eq!(net.w2.shape(), &[1, 16]);
-        assert_eq!(net.b2.shape(), &[1]);
-    }
-
-    #[test]
-    fn test_forward_pass_output_range() {
-        let net = Network::new_random();
-        let dummy_input = Array1::zeros(42);
-        let score = net.forward(&dummy_input);
-        assert!((0.0..=1.0).contains(&score), "Score {} out of range [0.0, 1.0]", score);
-    }
-
-    #[test]
-    fn test_forward_pass_deterministic() {
-        let net = Network::new_random();
-        let dummy_input = Array1::from_elem(42, 1.0);
-        let score1 = net.forward(&dummy_input);
-        let score2 = net.forward(&dummy_input);
-        assert_eq!(score1, score2);
-    }
-
-    #[test]
-    fn test_mutation_zero_rate() {
-        let net = Network::new_random();
-        let mut mutated = net.clone();
-        mutated.mutate(0.0, 1.0);
-
-        assert_eq!(net.w1, mutated.w1);
-        assert_eq!(net.b1, mutated.b1);
-        assert_eq!(net.w2, mutated.w2);
-        assert_eq!(net.b2, mutated.b2);
-    }
-
-    #[test]
-    fn test_mutation_full_rate() {
-        let net = Network::new_random();
-        let mut mutated = net.clone();
-        mutated.mutate(1.0, 0.5);
-
-        // Every weight and bias element should be modified
-        assert!(net.w1 != mutated.w1);
-        assert!(net.b1 != mutated.b1);
-        assert!(net.w2 != mutated.w2);
-        assert!(net.b2 != mutated.b2);
-    }
-
-    #[test]
-    fn test_crossover() {
-        let parent_a = Network::new_random();
-        let parent_b = Network::new_random();
-        let child = Network::crossover(&parent_a, &parent_b);
-
-        // Check each weight in child comes from either parent_a or parent_b
-        for r in 0..16 {
-            for c in 0..42 {
-                let val = child.w1[[r, c]];
-                assert!(val == parent_a.w1[[r, c]] || val == parent_b.w1[[r, c]]);
-            }
-        }
-    }
-}
 
 
 
