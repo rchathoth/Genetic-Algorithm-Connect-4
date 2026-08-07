@@ -1,4 +1,6 @@
 mod board;
+mod nn;
+mod ga;
 
 use board::{Board, MoveResult, Cell};
 use std::io::{self, Write};

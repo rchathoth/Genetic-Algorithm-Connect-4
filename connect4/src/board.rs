@@ -1,3 +1,5 @@
+use ndarray::Array1;
+
 // Enum for cell state
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Cell {
@@ -16,9 +18,16 @@ pub enum MoveResult {
 }
 
 // Struct of game board
+#[derive(Debug, Clone)]
 pub struct Board {
     pub board: [Cell; 42],
     pub turn: Cell,
+}
+
+impl Default for Board {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 // Implementation of the board struct
@@ -31,6 +40,20 @@ impl Board {
         }
     }
     
+    // Returns available non-full column indices (0..7)
+    pub fn get_valid_moves(&self) -> Vec<usize> {
+        (0..7).filter(|&c| self.board[c] == Cell::Empty).collect()
+    }
+
+    // Converts flattened board to f32 Array1 vector (+1.0 friendly, -1.0 enemy, 0.0 empty)
+    pub fn to_input_vector(&self, active_player: Cell) -> Array1<f32> {
+        Array1::from_shape_fn(42, |i| match self.board[i] {
+            Cell::Empty => 0.0,
+            cell if cell == active_player => 1.0,
+            _ => -1.0,
+        })
+    }
+
     // Makes a move on the board
     pub fn make_move(&mut self, col: usize) -> MoveResult {
         // check if the move is valid
@@ -137,5 +160,39 @@ impl Board {
             println!();
         }
     }
+}
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_valid_moves_initial() {
+        let board = Board::new();
+        assert_eq!(board.get_valid_moves(), vec![0, 1, 2, 3, 4, 5, 6]);
+    }
+
+    #[test]
+    fn test_input_vector() {
+        let mut board = Board::new();
+        board.make_move(0); // P1 move at index 35 (col 0, bottom row)
+        let vec_p1 = board.to_input_vector(Cell::P1);
+        let vec_p2 = board.to_input_vector(Cell::P2);
+
+        assert_eq!(vec_p1[35], 1.0);
+        assert_eq!(vec_p2[35], -1.0);
+        assert_eq!(vec_p1[0], 0.0);
+    }
+
+    #[test]
+    fn test_horizontal_win() {
+        let mut board = Board::new();
+        // P1 places in 0, 1, 2, 3 (interleaved with P2 in col 6)
+        for col in 0..3 {
+            assert_eq!(board.make_move(col), MoveResult::Ongoing); // P1
+            assert_eq!(board.make_move(6), MoveResult::Ongoing);   // P2
+        }
+        let res = board.make_move(3); // P1 4th piece
+        assert_eq!(res, MoveResult::Win(Cell::P1));
+    }
 }
