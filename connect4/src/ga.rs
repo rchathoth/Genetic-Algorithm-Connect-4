@@ -19,16 +19,21 @@ impl Bot {
     /// with the highest neural network desirability score.
     pub fn choose_move(&self, board: &Board) -> usize {
         let valid_moves = board.get_valid_moves();
+        let mut best_col = valid_moves[0];
+        let mut max_score = f32::NEG_INFINITY;
         
         for i in valid_moves {
             let mut sim_board = board.clone();
             sim_board.make_move(i);
             let input_vec = sim_board.to_input_vector(board.turn);
-                        
+            let score = self.network.forward(&input_vec);
+            
+            if score > max_score {
+                max_score = score;
+                best_col = i;
+            }
         }
-        // TODO: Iterate over valid_moves
-        // TODO: Clone board, execute move, convert to input vector
-        // TODO: Evaluate using self.network.forward()
-        // TODO: Track and return the column with the highest evaluation score
+        
+        best_col
     }
 }
