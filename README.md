@@ -8,7 +8,7 @@ A high-performance Connect 4 Artificial Intelligence engine in **Rust**. The eng
 
 * **Game Mechanics ([`board.rs`](connect4/src/board.rs))**: Flat contiguous memory layout (`[Cell; 42]`), localized $O(1)$ directional win checking, and fast $42$-element state vectorization (`+1.0` friendly, `-1.0` enemy, `0.0` empty).
 * **Neural Brain ([`nn.rs`](connect4/src/nn.rs))**: Single hidden layer MLP ($42 \to 16 \to 1$) built with `ndarray` (`f32`), Xavier weight initialization, ReLU hidden activation, and Sigmoid scalar desirability output score $\in [0.0, 1.0]$.
-* **Genetics Engine ([`nn.rs`](connect4/src/nn.rs))**: Gaussian noise mutation ($\mathcal{N}(0, \text{scale})$) and uniform 50/50 matrix crossover.
+* **Genetics Engine ([`nn.rs`](connect4/src/nn.rs))**: Gaussian noise mutation and uniform 50/50 matrix crossover.
 * **Parallel Trainer ([`ga.rs`](connect4/src/ga.rs))**: Round-robin tournament simulation leveraged across all available CPU cores using `rayon`, simulating thousands of moves per second.
 * **Model Checkpointing ([`main.rs`](connect4/src/main.rs))**: Serializes and deserializes the champion network to [`champion.json`](connect4/champion.json) via `serde` / `serde_json`.
 
