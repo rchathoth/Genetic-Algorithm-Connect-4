@@ -69,7 +69,7 @@ fn run_training_mode(generations: usize, pop_size: usize) {
 
 /// Interactive Human vs AI play mode using the trained champion network.
 fn run_play_mode() {
-    println!("🎮 Connect 4: Human vs AI Mode");
+    println!("Connect 4: Human vs AI Mode");
 
     // TODO 1: Load champion network from disk, or fallback to random
     let bot = match load_champion(CHAMPION_PATH) {
@@ -114,31 +114,31 @@ fn run_play_mode() {
                 MoveResult::Invalid => println!("Column full!"),
                 MoveResult::Win(player) => {
                     board.display();
-                    println!("🎉 {:?} Wins!", player);
+                    println!("{:?} Wins!", player);
                     break;
                 }
                 MoveResult::Draw => {
                     board.display();
-                    println!("🤝 It's a Draw!");
+                    println!("It's a Draw!");
                     break;
                 }
                 MoveResult::Ongoing => {}
             }
         } else {
             // TODO 3: AI move selection using bot.choose_move(&board)
-            println!("🤖 AI is thinking...");
+            println!("AI is thinking...");
             let ai_col = bot.choose_move(&board);
             println!("AI selected column {}", ai_col);
 
             match board.make_move(ai_col) {
                 MoveResult::Win(player) => {
                     board.display();
-                    println!("🤖 {:?} Wins!", player);
+                    println!("{:?} Wins!", player);
                     break;
                 }
                 MoveResult::Draw => {
                     board.display();
-                    println!("🤝 It's a Draw!");
+                    println!("It's a Draw!");
                     break;
                 }
                 MoveResult::Ongoing => {}
